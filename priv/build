@@ -1,0 +1,2 @@
+#!/bin/bash
+gcc -fPIC -shared -o libmpq.so libmpq.c -I /usr/local/lib/erlang/usr/include/ -lmpq -Wall
