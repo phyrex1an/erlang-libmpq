@@ -1,14 +1,21 @@
 #include "erl_nif.h"
 #include "libmpq/mpq.h"
 
-#define MPQ_UNIT32_T(name, func) \
+#define MPQ_UNIT32_T(name, func)                                        \
   static ERL_NIF_TERM name(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t) { \
     return nif_mpq_unit32_t(env, mpq_archive_t, (func));                \
   }
 
-#define MPQ_OFF_T(name, func) \
+#define MPQ_OFF_T(name, func)                                           \
   static ERL_NIF_TERM name(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t) { \
     return nif_mpq_off_t(env, mpq_archive_t, (func));                   \
+  }
+
+#define READ_MPQ_ARCHIVE()                                \
+  unsigned long mpq_archive;                              \
+  if (!enif_get_ulong(env, mpq_archive_t, &mpq_archive))  \
+  {                                                       \
+    return enif_make_badarg(env);                         \
   }
 
 static ERL_NIF_TERM my_enif_make_error(ErlNifEnv *env, char *msg)
@@ -64,11 +71,7 @@ static char* my_enif_get_string(ErlNifEnv *env, ERL_NIF_TERM list)
 // func that operates on mpq and returns uint32_t
 static ERL_NIF_TERM nif_mpq_unit32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, int32_t (*f)(mpq_archive_s *, uint32_t *))
 {
-  unsigned long mpq_archive;
-  if (!enif_get_ulong(env, mpq_archive_t, &mpq_archive))
-  {
-    return enif_make_badarg(env);
-  }
+  READ_MPQ_ARCHIVE();
   uint32_t result;
   if (!f((mpq_archive_s *)mpq_archive, &result))
   {
@@ -82,11 +85,7 @@ static ERL_NIF_TERM nif_mpq_unit32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t,
 // func that operates on mpq and returns libmpq__off_t
 static ERL_NIF_TERM nif_mpq_off_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, int32_t (*f)(mpq_archive_s *, libmpq__off_t *))
 {
-  unsigned long mpq_archive;
-  if (!enif_get_ulong(env, mpq_archive_t, &mpq_archive))
-  {
-    return enif_make_badarg(env);
-  }
+  READ_MPQ_ARCHIVE();
   libmpq__off_t result;
   if (!f((mpq_archive_s *)mpq_archive, &result))
   {
