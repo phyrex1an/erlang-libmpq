@@ -41,8 +41,16 @@
 static ERL_NIF_TERM my_enif_make_error(ErlNifEnv *env, char *msg)
 {
   return enif_make_tuple(env, 2,
-			 enif_make_atom(env, "error"),
-			 enif_make_string(env, msg));
+                         enif_make_atom(env, "error"),
+                         enif_make_string(env, msg));
+}
+
+static ERL_NIF_TERM my_enif_make_error_code(ErlNifEnv *env, char *msg, int code)
+{
+  return enif_make_tuple(env, 3,
+                         enif_make_atom(env, "error"),
+                         enif_make_string(env, msg),
+                         enif_make_int(env, code));
 }
 
 static int my_enif_list_size(ErlNifEnv* env, ERL_NIF_TERM list)
@@ -93,7 +101,7 @@ static ERL_NIF_TERM nif_mpq_uint32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t,
 {
   READ_MPQ_ARCHIVE();
   uint32_t result;
-  if (!f((mpq_archive_s *)mpq_archive, &result))
+  if (f((mpq_archive_s *)mpq_archive, &result))
   {
     return my_enif_make_error(env, "Error performing operation");
   }
@@ -107,7 +115,7 @@ static ERL_NIF_TERM nif_mpq_off_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, in
 {
   READ_MPQ_ARCHIVE();
   libmpq__off_t result;
-  if (!f((mpq_archive_s *)mpq_archive, &result))
+  if (f((mpq_archive_s *)mpq_archive, &result))
   {
     return my_enif_make_error(env, "Error performing operation");
   }
@@ -122,7 +130,7 @@ static ERL_NIF_TERM nif_mpq_file_uint32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archi
   READ_MPQ_ARCHIVE();
   READ_FILE_NUMBER();
   uint32_t result;
-  if (!f((mpq_archive_s *)mpq_archive, file_number, &result))
+  if (f((mpq_archive_s *)mpq_archive, file_number, &result))
   {
     return my_enif_make_error(env, "Error performing operation");
   }
@@ -137,7 +145,7 @@ static ERL_NIF_TERM nif_mpq_file_off_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_
   READ_MPQ_ARCHIVE();
   READ_FILE_NUMBER();
   libmpq__off_t result;
-  if (!f((mpq_archive_s *)mpq_archive, file_number, &result))
+  if (f((mpq_archive_s *)mpq_archive, file_number, &result))
   {
     return my_enif_make_error(env, "Error performing operation");
   }
@@ -165,9 +173,9 @@ static ERL_NIF_TERM nif_archive_open(ErlNifEnv* env, ERL_NIF_TERM mpq_filename_t
   mpq_archive_s *mpq_archive;
   int32_t result = libmpq__archive_open(&mpq_archive, mpq_filename, archive_offset);
   enif_free(env, mpq_filename);
-  if (!result)
+  if (result)
   {
-    return my_enif_make_error(env, "Error opening archive");
+    return my_enif_make_error_code(env, "Error opening archive", result);
   }
   return enif_make_tuple(env, 2,
                          enif_make_atom(env, "ok"),
@@ -177,7 +185,7 @@ static ERL_NIF_TERM nif_archive_open(ErlNifEnv* env, ERL_NIF_TERM mpq_filename_t
 static ERL_NIF_TERM nif_archive_close(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t)
 {
   READ_MPQ_ARCHIVE();
-  if(!libmpq__archive_close((mpq_archive_s*)mpq_archive))
+  if(libmpq__archive_close((mpq_archive_s*)mpq_archive))
   {
     return my_enif_make_error(env, "Error closing archive");
   }
@@ -210,7 +218,7 @@ static ERL_NIF_TERM nif_file_number(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, 
   uint32_t number;
   int32_t result = libmpq__file_number((mpq_archive_s *)mpq_archive, filename, &number);
   enif_free(env, filename);
-  if (!result)
+  if (result)
   {
     return my_enif_make_error(env, "Failed to get file number");
   }
@@ -224,7 +232,7 @@ static ERL_NIF_TERM nif_file_read(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t,  E
   READ_MPQ_ARCHIVE();
   READ_FILE_NUMBER();
   libmpq__off_t unpacked_size;
-  if(!libmpq__file_unpacked_size((mpq_archive_s *)mpq_archive, file_number, &unpacked_size))
+  if(libmpq__file_unpacked_size((mpq_archive_s *)mpq_archive, file_number, &unpacked_size))
   {
     return my_enif_make_error(env, "Error getting file size");
   }
@@ -232,7 +240,7 @@ static ERL_NIF_TERM nif_file_read(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t,  E
   ErlNifBinary bin;
   libmpq__off_t transferred;
   enif_alloc_binary(env, unpacked_size, &bin);
-  if (!libmpq__file_read((mpq_archive_s *)mpq_archive, file_number, bin.data, unpacked_size, &transferred))
+  if (libmpq__file_read((mpq_archive_s *)mpq_archive, file_number, bin.data, unpacked_size, &transferred))
   {
     enif_release_binary(env, &bin);
     return my_enif_make_error(env, "Error reading file content");
