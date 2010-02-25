@@ -11,6 +11,18 @@
     return nif_mpq_off_t(env, mpq_archive_t, (func));                   \
   }
 
+#define MPQ_FILE_UINT32_T(name, func)                                   \
+  static ERL_NIF_TERM name(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, ERL_NIF_TERM file_number_t) \
+  {                                                                     \
+    return nif_mpq_file_uint32_t(env, mpq_archive_t, file_number_t, (func)); \
+  }
+
+#define MPQ_FILE_OFF_T(name, func)                                   \
+  static ERL_NIF_TERM name(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, ERL_NIF_TERM file_number_t) \
+  {                                                                     \
+    return nif_mpq_file_off_t(env, mpq_archive_t, file_number_t, (func)); \
+  }
+
 #define READ_MPQ_ARCHIVE()                                \
   unsigned long mpq_archive;                              \
   if (!enif_get_ulong(env, mpq_archive_t, &mpq_archive))  \
@@ -179,6 +191,15 @@ MPQ_UNIT32_T(nif_archive_version,libmpq__archive_version);
 MPQ_UNIT32_T(nif_archive_files,libmpq__archive_files);
 
 
+MPQ_FILE_OFF_T(nif_file_packed_size, libmpq__file_packed_size);
+MPQ_FILE_OFF_T(nif_file_unpacked_size, libmpq__file_unpacked_size);
+MPQ_FILE_OFF_T(nif_file_offset, libmpq__file_offset);
+MPQ_FILE_UINT32_T(nif_file_blocks,libmpq__file_blocks);
+MPQ_FILE_UINT32_T(nif_file_encrypted,libmpq__file_encrypted);
+MPQ_FILE_UINT32_T(nif_file_compressed,libmpq__file_compressed);
+MPQ_FILE_UINT32_T(nif_file_imploded,libmpq__file_imploded);
+
+
 static ErlNifFunc nif_funcs[] = 
   {
     {"archive_open", 2, (void*)nif_archive_open},
@@ -187,6 +208,15 @@ static ErlNifFunc nif_funcs[] =
     {"archive_unpacked_size",1,(void*)nif_archive_unpacked_size},
     {"archive_offset",1,(void*)nif_archive_offset},
     {"archive_version",1,(void*)nif_archive_version},
-    {"archive_files",1,(void*)nif_archive_files}
+    {"archive_files",1,(void*)nif_archive_files},
+
+    {"file_packed_size",2,(void*)nif_file_packed_size},
+    {"file_unpacked_size",2,(void*)nif_file_unpacked_size},
+    {"file_offset",2,(void*)nif_file_offset},
+    {"file_blocks",2,(void*)nif_file_blocks},
+    {"file_encrypted",2,(void*)nif_file_encrypted},
+    {"file_compressed",2,(void*)nif_file_compressed},
+    {"file_imploded",2,(void*)nif_file_imploded}
+
   };
 ERL_NIF_INIT(libmpq,nif_funcs,NULL,NULL,NULL,NULL)
