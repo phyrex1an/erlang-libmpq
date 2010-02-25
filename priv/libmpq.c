@@ -18,6 +18,14 @@
     return enif_make_badarg(env);                         \
   }
 
+#define READ_FILE_NUMBER()                                      \
+  uint32_t file_number;                                         \
+  if (!enif_get_int(env, file_number_t, (int *) &file_number))  \
+  {                                                             \
+    return enif_make_badarg(env);                               \
+  }
+   
+
 static ERL_NIF_TERM my_enif_make_error(ErlNifEnv *env, char *msg)
 {
   return enif_make_tuple(env, 2,
@@ -88,6 +96,36 @@ static ERL_NIF_TERM nif_mpq_off_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, in
   READ_MPQ_ARCHIVE();
   libmpq__off_t result;
   if (!f((mpq_archive_s *)mpq_archive, &result))
+  {
+    return my_enif_make_error(env, "Error performing operation");
+  }
+  return enif_make_tuple(env, 2,
+                         enif_make_atom(env, "ok"),
+                         enif_make_ulong(env, result));
+}
+
+// func that operats on a mpq file and returns int32_t
+static ERL_NIF_TERM nif_mpq_file_uint32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, ERL_NIF_TERM file_number_t, int32_t (*f)(mpq_archive_s *, uint32_t, uint32_t *))
+{
+  READ_MPQ_ARCHIVE();
+  READ_FILE_NUMBER();
+  uint32_t result;
+  if (!f((mpq_archive_s *)mpq_archive, file_number, &result))
+  {
+    return my_enif_make_error(env, "Error performing operation");
+  }
+  return enif_make_tuple(env, 2,
+                         enif_make_atom(env, "ok"),
+                         enif_make_int(env, result));
+}
+
+// func that operats on mpq file and returns libmpq__off_t
+static ERL_NIF_TERM nif_mpq_file_off_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, ERL_NIF_TERM file_number_t, int32_t (*f)(mpq_archive_s *, uint32_t, libmpq__off_t *))
+{
+  READ_MPQ_ARCHIVE();
+  READ_FILE_NUMBER();
+  libmpq__off_t result;
+  if (!f((mpq_archive_s *)mpq_archive, file_number, &result))
   {
     return my_enif_make_error(env, "Error performing operation");
   }
