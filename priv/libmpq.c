@@ -3,7 +3,7 @@
 
 #define MPQ_UNIT32_T(name, func)                                        \
   static ERL_NIF_TERM name(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t) { \
-    return nif_mpq_unit32_t(env, mpq_archive_t, (func));                \
+    return nif_mpq_uint32_t(env, mpq_archive_t, (func));                \
   }
 
 #define MPQ_OFF_T(name, func)                                           \
@@ -69,7 +69,7 @@ static char* my_enif_get_string(ErlNifEnv *env, ERL_NIF_TERM list)
 }
 
 // func that operates on mpq and returns uint32_t
-static ERL_NIF_TERM nif_mpq_unit32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, int32_t (*f)(mpq_archive_s *, uint32_t *))
+static ERL_NIF_TERM nif_mpq_uint32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, int32_t (*f)(mpq_archive_s *, uint32_t *))
 {
   READ_MPQ_ARCHIVE();
   uint32_t result;
