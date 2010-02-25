@@ -124,6 +124,16 @@ static ERL_NIF_TERM nif_archive_open(ErlNifEnv* env, ERL_NIF_TERM mpq_filename_t
                          enif_make_ulong(env, (unsigned long)mpq_archive));
 }
 
+static ERL_NIF_TERM nif_archive_close(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t)
+{
+  READ_MPQ_ARCHIVE();
+  if(!libmpq__archive_close((mpq_archive_s*)mpq_archive))
+  {
+    return my_enif_make_error(env, "Error closing archive");
+  }
+  return enif_make_atom(env, "ok");
+}
+
 MPQ_OFF_T(nif_archive_packed_size,libmpq__archive_packed_size);
 MPQ_OFF_T(nif_archive_unpacked_size,libmpq__archive_unpacked_size);
 MPQ_OFF_T(nif_archive_offset,libmpq__archive_offset);
@@ -134,6 +144,7 @@ MPQ_UNIT32_T(nif_archive_files,libmpq__archive_files);
 static ErlNifFunc nif_funcs[] = 
   {
     {"archive_open", 2, (void*)nif_archive_open},
+    {"archive_close", 1, (void*)nif_archive_close},
     {"archive_packed_size",1,(void*)nif_archive_packed_size},
     {"archive_unpacked_size",1,(void*)nif_archive_unpacked_size},
     {"archive_offset",1,(void*)nif_archive_offset},
