@@ -1,7 +1,7 @@
 #include "erl_nif.h"
 #include "libmpq/mpq.h"
 
-#define MPQ_UNIT32_T(name, func)                                        \
+#define MPQ_UINT32_T(name, func)                                        \
   static ERL_NIF_TERM name(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t) { \
     return nif_mpq_uint32_t(env, mpq_archive_t, (func));                \
   }
@@ -187,8 +187,8 @@ static ERL_NIF_TERM nif_archive_close(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t
 MPQ_OFF_T(nif_archive_packed_size,libmpq__archive_packed_size);
 MPQ_OFF_T(nif_archive_unpacked_size,libmpq__archive_unpacked_size);
 MPQ_OFF_T(nif_archive_offset,libmpq__archive_offset);
-MPQ_UNIT32_T(nif_archive_version,libmpq__archive_version);
-MPQ_UNIT32_T(nif_archive_files,libmpq__archive_files);
+MPQ_UINT32_T(nif_archive_version,libmpq__archive_version);
+MPQ_UINT32_T(nif_archive_files,libmpq__archive_files);
 
 
 MPQ_FILE_OFF_T(nif_file_packed_size, libmpq__file_packed_size);
