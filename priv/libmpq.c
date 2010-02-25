@@ -199,6 +199,49 @@ MPQ_FILE_UINT32_T(nif_file_encrypted,libmpq__file_encrypted);
 MPQ_FILE_UINT32_T(nif_file_compressed,libmpq__file_compressed);
 MPQ_FILE_UINT32_T(nif_file_imploded,libmpq__file_imploded);
 
+static ERL_NIF_TERM nif_file_number(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, ERL_NIF_TERM filename_t)
+{
+  READ_MPQ_ARCHIVE();
+  char *filename = my_enif_get_string(env, filename_t);
+  if(!filename)
+  {
+    return enif_make_badarg(env);
+  }
+  uint32_t number;
+  int32_t result = libmpq__file_number((mpq_archive_s *)mpq_archive, filename, &number);
+  enif_free(env, filename);
+  if (!result)
+  {
+    return my_enif_make_error(env, "Failed to get file number");
+  }
+  return enif_make_tuple(env, 2,
+                         enif_make_atom(env, "ok"),
+                         enif_make_int(env, number));
+}
+
+static ERL_NIF_TERM nif_file_read(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t,  ERL_NIF_TERM file_number_t)
+{
+  READ_MPQ_ARCHIVE();
+  READ_FILE_NUMBER();
+  libmpq__off_t unpacked_size;
+  if(!libmpq__file_unpacked_size((mpq_archive_s *)mpq_archive, file_number, &unpacked_size))
+  {
+    return my_enif_make_error(env, "Error getting file size");
+  }
+  
+  ErlNifBinary bin;
+  libmpq__off_t transferred;
+  enif_alloc_binary(env, unpacked_size, &bin);
+  if (!libmpq__file_read((mpq_archive_s *)mpq_archive, file_number, bin.data, unpacked_size, &transferred))
+  {
+    enif_release_binary(env, &bin);
+    return my_enif_make_error(env, "Error reading file content");
+  }
+  return enif_make_tuple(env, 3,
+                         enif_make_atom(env, "ok"),
+                         enif_make_binary(env, &bin),
+                         enif_make_ulong(env, transferred));
+}
 
 static ErlNifFunc nif_funcs[] = 
   {
@@ -216,7 +259,9 @@ static ErlNifFunc nif_funcs[] =
     {"file_blocks",2,(void*)nif_file_blocks},
     {"file_encrypted",2,(void*)nif_file_encrypted},
     {"file_compressed",2,(void*)nif_file_compressed},
-    {"file_imploded",2,(void*)nif_file_imploded}
+    {"file_imploded",2,(void*)nif_file_imploded},
+    {"file_number",2,(void*)nif_file_number},
+    {"file_read",2,(void*)nif_file_read}
 
   };
 ERL_NIF_INIT(libmpq,nif_funcs,NULL,NULL,NULL,NULL)
