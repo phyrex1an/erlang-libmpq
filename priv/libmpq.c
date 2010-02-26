@@ -149,9 +149,9 @@ static ERL_NIF_TERM nif_archive_open(ErlNifEnv* env, int argc, const ERL_NIF_TER
     return enif_make_badarg(env);
   }
 
-  unsigned long archive_offset;
+  long archive_offset;
 
-  if (!enif_get_ulong(env, argv[1], &archive_offset))
+  if (!enif_get_long(env, argv[1], &archive_offset))
   {
     enif_free(env, mpq_filename);
     return enif_make_badarg(env);
