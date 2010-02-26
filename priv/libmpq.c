@@ -101,7 +101,7 @@ static ERL_NIF_TERM nif_mpq_uint32_t(ErlNifEnv* env, int argc, const ERL_NIF_TER
 {
   READ_MPQ_ARCHIVE(0);
   uint32_t result;
-  if (f((mpq_archive_s *)mpq_archive, &result))
+  if (f(mpq_archive, &result))
   {
     return my_enif_make_error(env, "Error performing operation");
   }
@@ -115,7 +115,7 @@ static ERL_NIF_TERM nif_mpq_off_t(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
 {
   READ_MPQ_ARCHIVE(0);
   libmpq__off_t result;
-  if (f((mpq_archive_s *)mpq_archive, &result))
+  if (f(mpq_archive, &result))
   {
     return my_enif_make_error(env, "Error performing operation");
   }
@@ -130,7 +130,7 @@ static ERL_NIF_TERM nif_mpq_file_uint32_t(ErlNifEnv* env, int argc, const ERL_NI
   READ_MPQ_ARCHIVE(0);
   READ_FILE_NUMBER(1);
   uint32_t result;
-  if (f((mpq_archive_s *)mpq_archive, file_number, &result))
+  if (f(mpq_archive, file_number, &result))
   {
     return my_enif_make_error(env, "Error performing operation");
   }
@@ -145,7 +145,7 @@ static ERL_NIF_TERM nif_mpq_file_off_t(ErlNifEnv* env, int argc, const ERL_NIF_T
   READ_MPQ_ARCHIVE(0);
   READ_FILE_NUMBER(1);
   libmpq__off_t result;
-  if (f((mpq_archive_s *)mpq_archive, file_number, &result))
+  if (f(mpq_archive, file_number, &result))
   {
     return my_enif_make_error(env, "Error performing operation");
   }
@@ -185,7 +185,7 @@ static ERL_NIF_TERM nif_archive_open(ErlNifEnv* env, int argc, const ERL_NIF_TER
 static ERL_NIF_TERM nif_archive_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   READ_MPQ_ARCHIVE(0);
-  if(libmpq__archive_close((mpq_archive_s*)mpq_archive))
+  if(libmpq__archive_close(mpq_archive))
   {
     return my_enif_make_error(env, "Error closing archive");
   }
@@ -216,7 +216,7 @@ static ERL_NIF_TERM nif_file_number(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     return enif_make_badarg(env);
   }
   uint32_t number;
-  int32_t result = libmpq__file_number((mpq_archive_s *)mpq_archive, filename, &number);
+  int32_t result = libmpq__file_number(mpq_archive, filename, &number);
   enif_free(env, filename);
   if (result)
   {
@@ -232,7 +232,7 @@ static ERL_NIF_TERM nif_file_read(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
   READ_MPQ_ARCHIVE(0);
   READ_FILE_NUMBER(1);
   libmpq__off_t unpacked_size;
-  if(libmpq__file_unpacked_size((mpq_archive_s *)mpq_archive, file_number, &unpacked_size))
+  if(libmpq__file_unpacked_size(mpq_archive, file_number, &unpacked_size))
   {
     return my_enif_make_error(env, "Error getting file size");
   }
