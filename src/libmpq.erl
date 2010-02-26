@@ -23,8 +23,7 @@
         ]).
 
 init() ->
-    ok = erlang:load_nif("/home/phyrex1an/git/erlang-libmpq/priv/libmpq", 0),
-    true.
+    erlang:load_nif("/home/phyrex1an/git/erlang-libmpq/priv/libmpq", 0).
 
 %% {ok, MPQ = long()}
 archive_open(_MpqFilename, _ArchiveOffset) ->
