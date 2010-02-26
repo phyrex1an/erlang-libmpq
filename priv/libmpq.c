@@ -2,37 +2,37 @@
 #include "libmpq/mpq.h"
 
 #define MPQ_UINT32_T(name, func)                                        \
-  static ERL_NIF_TERM name(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t) { \
-    return nif_mpq_uint32_t(env, mpq_archive_t, (func));                \
+  static ERL_NIF_TERM name(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) { \
+    return nif_mpq_uint32_t(env, argc, argv, (func));                   \
   }
 
 #define MPQ_OFF_T(name, func)                                           \
-  static ERL_NIF_TERM name(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t) { \
-    return nif_mpq_off_t(env, mpq_archive_t, (func));                   \
+  static ERL_NIF_TERM name(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) { \
+    return nif_mpq_off_t(env, argc, argv, (func));                           \
   }
 
 #define MPQ_FILE_UINT32_T(name, func)                                   \
-  static ERL_NIF_TERM name(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, ERL_NIF_TERM file_number_t) \
+  static ERL_NIF_TERM name(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) \
   {                                                                     \
-    return nif_mpq_file_uint32_t(env, mpq_archive_t, file_number_t, (func)); \
+    return nif_mpq_file_uint32_t(env, argc, argv, (func));              \
   }
 
-#define MPQ_FILE_OFF_T(name, func)                                   \
-  static ERL_NIF_TERM name(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, ERL_NIF_TERM file_number_t) \
+#define MPQ_FILE_OFF_T(name, func)                                      \
+  static ERL_NIF_TERM name(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) \
   {                                                                     \
-    return nif_mpq_file_off_t(env, mpq_archive_t, file_number_t, (func)); \
+    return nif_mpq_file_off_t(env, argc, argv, (func));                 \
   }
 
-#define READ_MPQ_ARCHIVE()                                \
-  unsigned long mpq_archive;                              \
-  if (!enif_get_ulong(env, mpq_archive_t, &mpq_archive))  \
-  {                                                       \
-    return enif_make_badarg(env);                         \
+#define READ_MPQ_ARCHIVE(pos)                                           \
+  mpq_archive_s *mpq_archive;                                           \
+  if (!enif_get_ulong(env, argv[pos], (unsigned long *) &mpq_archive))  \
+  {                                                                     \
+    return enif_make_badarg(env);                                       \
   }
 
-#define READ_FILE_NUMBER()                                      \
+#define READ_FILE_NUMBER(pos)                                   \
   uint32_t file_number;                                         \
-  if (!enif_get_int(env, file_number_t, (int *) &file_number))  \
+  if (!enif_get_int(env, argv[pos], (int *) &file_number))      \
   {                                                             \
     return enif_make_badarg(env);                               \
   }
@@ -42,14 +42,14 @@ static ERL_NIF_TERM my_enif_make_error(ErlNifEnv *env, char *msg)
 {
   return enif_make_tuple(env, 2,
                          enif_make_atom(env, "error"),
-                         enif_make_string(env, msg));
+                         enif_make_string(env, msg, ERL_NIF_LATIN1));
 }
 
 static ERL_NIF_TERM my_enif_make_error_code(ErlNifEnv *env, char *msg, int code)
 {
   return enif_make_tuple(env, 3,
                          enif_make_atom(env, "error"),
-                         enif_make_string(env, msg),
+                         enif_make_string(env, msg, ERL_NIF_LATIN1),
                          enif_make_int(env, code));
 }
 
@@ -97,9 +97,9 @@ static char* my_enif_get_string(ErlNifEnv *env, ERL_NIF_TERM list)
 }
 
 // func that operates on mpq and returns uint32_t
-static ERL_NIF_TERM nif_mpq_uint32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, int32_t (*f)(mpq_archive_s *, uint32_t *))
+static ERL_NIF_TERM nif_mpq_uint32_t(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[], int32_t (*f)(mpq_archive_s *, uint32_t *))
 {
-  READ_MPQ_ARCHIVE();
+  READ_MPQ_ARCHIVE(0);
   uint32_t result;
   if (f((mpq_archive_s *)mpq_archive, &result))
   {
@@ -111,9 +111,9 @@ static ERL_NIF_TERM nif_mpq_uint32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t,
 }
 
 // func that operates on mpq and returns libmpq__off_t
-static ERL_NIF_TERM nif_mpq_off_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, int32_t (*f)(mpq_archive_s *, libmpq__off_t *))
+static ERL_NIF_TERM nif_mpq_off_t(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[], int32_t (*f)(mpq_archive_s *, libmpq__off_t *))
 {
-  READ_MPQ_ARCHIVE();
+  READ_MPQ_ARCHIVE(0);
   libmpq__off_t result;
   if (f((mpq_archive_s *)mpq_archive, &result))
   {
@@ -125,10 +125,10 @@ static ERL_NIF_TERM nif_mpq_off_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, in
 }
 
 // func that operats on a mpq file and returns int32_t
-static ERL_NIF_TERM nif_mpq_file_uint32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, ERL_NIF_TERM file_number_t, int32_t (*f)(mpq_archive_s *, uint32_t, uint32_t *))
+static ERL_NIF_TERM nif_mpq_file_uint32_t(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[], int32_t (*f)(mpq_archive_s *, uint32_t, uint32_t *))
 {
-  READ_MPQ_ARCHIVE();
-  READ_FILE_NUMBER();
+  READ_MPQ_ARCHIVE(0);
+  READ_FILE_NUMBER(1);
   uint32_t result;
   if (f((mpq_archive_s *)mpq_archive, file_number, &result))
   {
@@ -140,10 +140,10 @@ static ERL_NIF_TERM nif_mpq_file_uint32_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archi
 }
 
 // func that operats on mpq file and returns libmpq__off_t
-static ERL_NIF_TERM nif_mpq_file_off_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, ERL_NIF_TERM file_number_t, int32_t (*f)(mpq_archive_s *, uint32_t, libmpq__off_t *))
+static ERL_NIF_TERM nif_mpq_file_off_t(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[], int32_t (*f)(mpq_archive_s *, uint32_t, libmpq__off_t *))
 {
-  READ_MPQ_ARCHIVE();
-  READ_FILE_NUMBER();
+  READ_MPQ_ARCHIVE(0);
+  READ_FILE_NUMBER(1);
   libmpq__off_t result;
   if (f((mpq_archive_s *)mpq_archive, file_number, &result))
   {
@@ -154,9 +154,9 @@ static ERL_NIF_TERM nif_mpq_file_off_t(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_
                          enif_make_ulong(env, result));
 }
 
-static ERL_NIF_TERM nif_archive_open(ErlNifEnv* env, ERL_NIF_TERM mpq_filename_t, ERL_NIF_TERM archive_offset_t)
+static ERL_NIF_TERM nif_archive_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  char *mpq_filename = my_enif_get_string(env, mpq_filename_t);
+  char *mpq_filename = my_enif_get_string(env, argv[0]);
   if (!mpq_filename)
   {
     return enif_make_badarg(env);
@@ -164,7 +164,7 @@ static ERL_NIF_TERM nif_archive_open(ErlNifEnv* env, ERL_NIF_TERM mpq_filename_t
 
   unsigned long archive_offset;
 
-  if (!enif_get_ulong(env, archive_offset_t, &archive_offset))
+  if (!enif_get_ulong(env, argv[1], &archive_offset))
   {
     enif_free(env, mpq_filename);
     return enif_make_badarg(env);
@@ -182,9 +182,9 @@ static ERL_NIF_TERM nif_archive_open(ErlNifEnv* env, ERL_NIF_TERM mpq_filename_t
                          enif_make_ulong(env, (unsigned long)mpq_archive));
 }
 
-static ERL_NIF_TERM nif_archive_close(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t)
+static ERL_NIF_TERM nif_archive_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  READ_MPQ_ARCHIVE();
+  READ_MPQ_ARCHIVE(0);
   if(libmpq__archive_close((mpq_archive_s*)mpq_archive))
   {
     return my_enif_make_error(env, "Error closing archive");
@@ -207,10 +207,10 @@ MPQ_FILE_UINT32_T(nif_file_encrypted,libmpq__file_encrypted);
 MPQ_FILE_UINT32_T(nif_file_compressed,libmpq__file_compressed);
 MPQ_FILE_UINT32_T(nif_file_imploded,libmpq__file_imploded);
 
-static ERL_NIF_TERM nif_file_number(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, ERL_NIF_TERM filename_t)
+static ERL_NIF_TERM nif_file_number(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  READ_MPQ_ARCHIVE();
-  char *filename = my_enif_get_string(env, filename_t);
+  READ_MPQ_ARCHIVE(0);
+  char *filename = my_enif_get_string(env, argv[1]);
   if(!filename)
   {
     return enif_make_badarg(env);
@@ -227,10 +227,10 @@ static ERL_NIF_TERM nif_file_number(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t, 
                          enif_make_int(env, number));
 }
 
-static ERL_NIF_TERM nif_file_read(ErlNifEnv* env, ERL_NIF_TERM mpq_archive_t,  ERL_NIF_TERM file_number_t)
+static ERL_NIF_TERM nif_file_read(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  READ_MPQ_ARCHIVE();
-  READ_FILE_NUMBER();
+  READ_MPQ_ARCHIVE(0);
+  READ_FILE_NUMBER(1);
   libmpq__off_t unpacked_size;
   if(libmpq__file_unpacked_size((mpq_archive_s *)mpq_archive, file_number, &unpacked_size))
   {
